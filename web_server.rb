@@ -1,7 +1,7 @@
 # Rack compliant web server
-require 'socket'
-require 'http/parser'
-require_relative './config/environment.rb'
+require "socket"
+require "http/parser"
+require_relative "./config/application.rb"
 
 module WebServer
   # Class RequestHandler handles HTTP requests and makes rack compliant env hash.
@@ -9,15 +9,15 @@ module WebServer
     include ApplicationLoader
 
     HTTP_CODES = {
-      200 => 'OK',
-      404 => 'Not Found',
-      500 => 'Internal Server Error'
+      200 => "OK",
+      404 => "Not Found",
+      500 => "Internal Server Error"
     }
 
     def initialize(port: 3000, workers: 4)
-      @web_server  = TCPServer.new('localhost', port)
+      @web_server  = TCPServer.new("localhost", port)
       @http_parser = Http::Parser.new(self)
-      @app         = load_application
+      @app         = RackApplication.load_application
       prefork(workers)
     end
 
@@ -54,8 +54,7 @@ module WebServer
       # CRLF for seperating head from body
       @socket.write "\r\n"
       # Body of the HTML
-      body.each { |chunk| @socket.write chunk }
-      body.close if body.respond_to?(:close)
+      body.each {|chunk| @socket.write chunk} if body.respond_to?(:each)
     end
 
     def rack_compliant_env

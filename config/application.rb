@@ -1,28 +1,23 @@
-require './routes.rb'
-require './environment.rb'
+require "./routes.rb"
+require "./environment.rb"
 
+# Class RackApplication includes the routes and does controller hits.
 class RackApplication
-  # include ApplicationLoader
   include Routes
-  
-  def load_all_files
-    ["controllers", "views"].each do |folder|
-      Dir["../app/#{folder}/*.rb"].each {|file| require_relative file}
-    end
-  end
+  extend ApplicationLoader
 
   def call(env)
     begin
       puts env
-      load_all_files
+      RackApplication.load_all_files
       controller, method = match_route(env)
       result = send(method)
       puts result
-      [200, {'Content-Type' => 'text/html'}, result]
+      [200, {"Content-Type" => "text/html"}, result]
     rescue StandardError => e
       puts e.message
       puts e.backtrace
-      [500, {'Content-Type' => 'text/html'}, e.message]
+      [404, {"Content-Type" => "text/html"}, ["<h2>Oops page not found!</h2>"]]
     end
   end
 end
